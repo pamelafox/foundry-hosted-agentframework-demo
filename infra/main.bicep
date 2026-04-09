@@ -76,6 +76,9 @@ var defaultModelDeploymentName = length(aiProjectDeployments) > 0 ? string(aiPro
 @description('Enable hosted agent deployment')
 param enableHostedAgents bool
 
+@description('Enable Azure AI Search provisioning and project connection')
+param enableSearch bool = true
+
 @description('Enable monitoring for the AI project')
 param enableMonitoring bool = true
 
@@ -141,6 +144,7 @@ module aiProject 'core/ai/ai-project.bicep' = {
     additionalDependentResources: dependentResources
     enableMonitoring: enableMonitoring
     enableHostedAgents: enableHostedAgents
+    enableSearch: enableSearch
     existingContainerRegistryResourceId: existingContainerRegistryResourceId
     existingContainerRegistryEndpoint: existingContainerRegistryEndpoint
     existingAcrConnectionName: existingAcrConnectionName
@@ -159,8 +163,8 @@ output AZURE_AI_ACCOUNT_NAME string = aiProject.outputs.aiServicesAccountName
 output AZURE_AI_PROJECT_NAME string = aiProject.outputs.projectName
 
 // Endpoints
-output MS_FOUNDRY_PROJECT_ENDPOINT string = aiProject.outputs.MS_FOUNDRY_PROJECT_ENDPOINT
-output MS_FOUNDRY_MODEL_DEPLOYMENT string = defaultModelDeploymentName
+output AZURE_AI_PROJECT_ENDPOINT string = aiProject.outputs.AZURE_AI_PROJECT_ENDPOINT
+output AZURE_AI_MODEL_DEPLOYMENT_NAME string = defaultModelDeploymentName
 output AZURE_OPENAI_ENDPOINT string = aiProject.outputs.AZURE_OPENAI_ENDPOINT
 output APPLICATIONINSIGHTS_CONNECTION_STRING string = aiProject.outputs.APPLICATIONINSIGHTS_CONNECTION_STRING
 output APPLICATIONINSIGHTS_RESOURCE_ID string = aiProject.outputs.APPLICATIONINSIGHTS_RESOURCE_ID
@@ -184,6 +188,7 @@ output BING_CUSTOM_GROUNDING_CONNECTION_ID string = aiProject.outputs.dependentR
 // Azure AI Search
 output AZURE_AI_SEARCH_CONNECTION_NAME string = aiProject.outputs.dependentResources.search.connectionName
 output AZURE_AI_SEARCH_SERVICE_NAME string = aiProject.outputs.dependentResources.search.serviceName
+output AZURE_AI_SEARCH_SERVICE_ENDPOINT string = !empty(aiProject.outputs.dependentResources.search.serviceName) ? 'https://${aiProject.outputs.dependentResources.search.serviceName}.search.windows.net' : ''
 
 // Azure Storage
 output AZURE_STORAGE_CONNECTION_NAME string = aiProject.outputs.dependentResources.storage.connectionName

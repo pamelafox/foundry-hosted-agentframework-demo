@@ -31,3 +31,14 @@ services:
 infra:
     provider: bicep
     path: ./infra
+hooks:
+    postprovision:
+        windows:
+            shell: pwsh
+            run: infra/hooks/postprovision.ps1
+            interactive: true
+        posix:
+            name: postprovision
+            shell: sh
+            run: infra/hooks/postprovision.sh
+            interactive: true

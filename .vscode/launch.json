@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Seattle Hotel Agent",
+            "name": "Python MAF Agent",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/main.py",

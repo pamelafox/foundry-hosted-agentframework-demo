@@ -34,6 +34,9 @@ param enableMonitoring bool = true
 @description('Enable hosted agent deployment')
 param enableHostedAgents bool = false
 
+@description('Enable Azure AI Search provisioning and project connection')
+param enableSearch bool = true
+
 @description('Optional. Existing container registry resource ID. If provided, a connection will be created to this ACR instead of creating a new one.')
 param existingContainerRegistryResourceId string = ''
 
@@ -55,8 +58,11 @@ param existingAppInsightsConnectionName string = ''
 // Load abbreviations
 var abbrs = loadJsonContent('../../abbreviations.json')
 
+var storageDependentResources = filter(additionalDependentResources, conn => conn.resource == 'storage')
+var searchDependentResources = filter(additionalDependentResources, conn => conn.resource == 'azure_ai_search')
+
 // Determine which resources to create based on connections
-var hasStorageConnection = length(filter(additionalDependentResources, conn => conn.resource == 'storage')) > 0
+var hasStorageConnection = enableSearch || length(storageDependentResources) > 0
 var hasAcrConnection = length(filter(additionalDependentResources, conn => conn.resource == 'registry')) > 0
 var hasExistingAcr = !empty(existingContainerRegistryResourceId)
 var hasExistingAcrConnection = !empty(existingAcrConnectionName)
@@ -64,14 +70,14 @@ var hasExistingAppInsightsConnection = !empty(existingAppInsightsConnectionName)
 var hasExistingAppInsightsConnectionString = !empty(existingApplicationInsightsConnectionString)
 // Only create new App Insights resources if monitoring enabled and no existing connection/connection string
 var shouldCreateAppInsights = enableMonitoring && !hasExistingAppInsightsConnection && !hasExistingAppInsightsConnectionString
-var hasSearchConnection = length(filter(additionalDependentResources, conn => conn.resource == 'azure_ai_search')) > 0
+var hasSearchConnection = enableSearch || length(searchDependentResources) > 0
 var hasBingConnection = length(filter(additionalDependentResources, conn => conn.resource == 'bing_grounding')) > 0
 var hasBingCustomConnection = length(filter(additionalDependentResources, conn => conn.resource == 'bing_custom_grounding')) > 0
 
 // Extract connection names from ai.yaml for each resource type
-var storageConnectionName = hasStorageConnection ? filter(additionalDependentResources, conn => conn.resource == 'storage')[0].connectionName : ''
+var storageConnectionName = hasStorageConnection ? (length(storageDependentResources) > 0 ? storageDependentResources[0].connectionName : 'storage-connection') : ''
 var acrConnectionName = hasAcrConnection ? filter(additionalDependentResources, conn => conn.resource == 'registry')[0].connectionName : ''
-var searchConnectionName = hasSearchConnection ? filter(additionalDependentResources, conn => conn.resource == 'azure_ai_search')[0].connectionName : ''
+var searchConnectionName = hasSearchConnection ? (length(searchDependentResources) > 0 ? searchDependentResources[0].connectionName : 'azure-ai-search-connection') : ''
 var bingConnectionName = hasBingConnection ? filter(additionalDependentResources, conn => conn.resource == 'bing_grounding')[0].connectionName : ''
 var bingCustomConnectionName = hasBingCustomConnection ? filter(additionalDependentResources, conn => conn.resource == 'bing_custom_grounding')[0].connectionName : ''
 
@@ -361,7 +367,7 @@ module azureAiSearch '../search/azure_ai_search.bicep' = if (hasSearchConnection
 }
 
 // Outputs
-output MS_FOUNDRY_PROJECT_ENDPOINT string = aiAccount::project.properties.endpoints['AI Foundry API']
+output AZURE_AI_PROJECT_ENDPOINT string = aiAccount::project.properties.endpoints['AI Foundry API']
 output AZURE_OPENAI_ENDPOINT string = aiAccount.properties.endpoints['OpenAI Language Model Instance API']
 output aiServicesEndpoint string = aiAccount.properties.endpoint
 output accountId string = aiAccount.id

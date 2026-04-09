@@ -7,7 +7,7 @@ param tags object = {}
 param resourceName string
 
 @description('Azure Search SKU name')
-param azureSearchSkuName string = 'basic'
+param azureSearchSkuName string = 'standard'
 
 @description('Azure storage account resource ID')
 param storageAccountResourceId string
@@ -107,6 +107,7 @@ resource searchToStorageRoleAssignment 'Microsoft.Authorization/roleAssignments@
 // Search needs OpenAI access (AI Services account)
 resource searchToAIServicesRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(aiServicesAccountName)) {
   name: guid(aiServicesAccountName, searchService.id, 'Cognitive Services OpenAI User', uniqueString(deployment().name))
+  scope: aiAccount
   properties: {
     // GOOD
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd') // Cognitive Services OpenAI User
@@ -146,6 +147,17 @@ resource userToSearchRoleAssignment 'Microsoft.Authorization/roleAssignments@202
   properties: {
     // GOOD
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '8ebe5a00-799e-43f5-93ac-243d3dce84a7') // Search Index Data Contributor
+    principalId: principalId
+    principalType: principalType
+  }
+}
+
+// User permissions - Search Service Contributor (needed for index create/update keyless)
+resource userToSearchServiceContributorRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(searchService.id, principalId, 'Search Service Contributor', uniqueString(deployment().name))
+  scope: searchService
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7ca78c08-252a-4471-8644-bb5ff32d4ba0') // Search Service Contributor
     principalId: principalId
     principalType: principalType
   }

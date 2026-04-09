@@ -7,6 +7,9 @@ dependencies = [
     "azure-identity",
     "python-dotenv",
     "azure-ai-agentserver-agentframework==1.0.0b17",
+    "azure-ai-projects>=2.0.0b4",
+    "azure-search-documents>=11.6.0",
+    "agent-framework-azure-ai-search>=1.0.0b260304",
 ]
 
 [tool.uv]
@@ -18,3 +21,10 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP"]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = []

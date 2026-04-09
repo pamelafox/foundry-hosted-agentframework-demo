@@ -1,111 +1,142 @@
 """
-Seattle Hotel Agent - A simple agent with a tool to find hotels in Seattle.
+Internal HR Helper - A simple agent with a tool to answer health insurance questions.
 Uses Microsoft Agent Framework with Azure AI Foundry.
 Ready for deployment to Foundry Hosted Agent service.
+
+Run using:
+azd ai agent run
 """
 
 import asyncio
+import logging
 import os
-from datetime import datetime
-from typing import Annotated
+from datetime import date
 
-from agent_framework import Agent
-from agent_framework.azure import AzureAIAgentClient
-from azure.ai.agentserver.agentframework import from_agent_framework
+import httpx
+from agent_framework import Agent, MCPStreamableHTTPTool
+from agent_framework.azure import AzureAIAgentClient, AzureAISearchContextProvider
+from agent_framework.observability import enable_instrumentation
+from azure.ai.agentserver.agentframework import FoundryToolsContextProvider, from_agent_framework
+from azure.ai.agentserver.agentframework.persistence import InMemoryAgentSessionRepository
 from azure.identity.aio import DefaultAzureCredential
 from dotenv import load_dotenv
 
 load_dotenv(dotenv_path=".env", override=True)
 
+
+logger = logging.getLogger("hr-agent")
+
+
 # Configure these for your Foundry project via environment variables (see .env.sample)
-PROJECT_ENDPOINT = os.environ["MS_FOUNDRY_PROJECT_ENDPOINT"]
-MODEL_DEPLOYMENT_NAME = os.environ["MS_FOUNDRY_MODEL_DEPLOYMENT"]
+PROJECT_ENDPOINT = os.environ["AZURE_AI_PROJECT_ENDPOINT"]
+MODEL_DEPLOYMENT_NAME = os.environ["AZURE_AI_MODEL_DEPLOYMENT_NAME"]
+SEARCH_SERVICE_ENDPOINT = os.environ["AZURE_AI_SEARCH_SERVICE_ENDPOINT"]
+KNOWLEDGE_BASE_NAME = os.environ["AZURE_AI_SEARCH_KNOWLEDGE_BASE_NAME"]
+# "context_provider" = AzureAISearchContextProvider injects KB results into context
+# "kb_mcp_endpoint" = MCPStreamableHTTPTool lets the model call the KB MCP endpoint as a tool
+FOUNDRY_IQ_CONTEXT_MODE = os.environ.get("FOUNDRY_IQ_CONTEXT_MODE", "kb_mcp_endpoint")
 
 
-# Simulated hotel data for Seattle
-SEATTLE_HOTELS = [
-    {"name": "Contoso Suites", "price_per_night": 189, "rating": 4.5, "location": "Downtown"},
-    {"name": "Fabrikam Residences", "price_per_night": 159, "rating": 4.2, "location": "Pike Place Market"},
-    {"name": "Alpine Ski House", "price_per_night": 249, "rating": 4.7, "location": "Seattle Center"},
-    {"name": "Margie's Travel Lodge", "price_per_night": 219, "rating": 4.4, "location": "Waterfront"},
-    {"name": "Northwind Inn", "price_per_night": 139, "rating": 4.0, "location": "Capitol Hill"},
-    {"name": "Relecloud Hotel", "price_per_night": 99, "rating": 3.8, "location": "University District"},
-]
-
-
-def get_available_hotels(
-    check_in_date: Annotated[str, "Check-in date in YYYY-MM-DD format"],
-    check_out_date: Annotated[str, "Check-out date in YYYY-MM-DD format"],
-    max_price: Annotated[int, "Maximum price per night in USD (optional)"] = 500,
-) -> str:
+def get_current_date() -> str:
     """
-    Get available hotels in Seattle for the specified dates.
-    This simulates a call to a fake hotel availability API.
+    Return the current date in ISO format.
     """
-    try:
-        # Parse dates
-        check_in = datetime.strptime(check_in_date, "%Y-%m-%d")
-        check_out = datetime.strptime(check_out_date, "%Y-%m-%d")
-        
-        # Validate dates
-        if check_out <= check_in:
-            return "Error: Check-out date must be after check-in date."
-        
-        nights = (check_out - check_in).days
-        
-        # Filter hotels by price
-        available_hotels = [
-            hotel for hotel in SEATTLE_HOTELS 
-            if hotel["price_per_night"] <= max_price
-        ]
-        
-        if not available_hotels:
-            return f"No hotels found in Seattle within your budget of ${max_price}/night."
-        
-        # Build response
-        result = f"Available hotels in Seattle from {check_in_date} to {check_out_date} ({nights} nights):\n\n"
-        
-        for hotel in available_hotels:
-            total_cost = hotel["price_per_night"] * nights
-            result += f"**{hotel['name']}**\n"
-            result += f"   Location: {hotel['location']}\n"
-            result += f"   Rating: {hotel['rating']}/5\n"
-            result += f"   ${hotel['price_per_night']}/night (Total: ${total_cost})\n\n"
-        
-        return result
-        
-    except ValueError as e:
-        return f"Error parsing dates. Please use YYYY-MM-DD format. Details: {str(e)}"
+    logger.info("Fetching current date")
+    return date.today().isoformat()
 
+def get_enrollment_deadline_info() -> str:
+    """
+    Return enrollment timeline details for health insurance plans.
+    """
+    logger.info("Fetching enrollment deadline information")
+    return {
+        "benefits_enrollment_opens": "2026-11-11",
+        "benefits_enrollment_closes": "2026-11-30"
+    }
+
+async def start_server(credential, tools, context_providers):
+    """Create the agent and start the server."""
+    agent = Agent(
+        client=AzureAIAgentClient(
+            project_endpoint=PROJECT_ENDPOINT,
+            model_deployment_name=MODEL_DEPLOYMENT_NAME,
+            credential=credential,
+        ),
+        name="InternalHRHelper",
+        instructions="""You are an internal HR helper focused on employee benefits and company information.
+        Use the knowledge available to answer questions and ground all answers in provided context.
+        You can use web search to look up current information when the knowledge base does not have the answer.
+        You can use these tools if the user needs information on benefits deadlines: get_enrollment_deadline_info, get_current_date.
+        If you cannot answer a question, explain that you do not have available information to fully answer the question.""",
+        tools=tools,
+        context_providers=context_providers,
+    )
+    logger.info("Internal HR Helper Server running on http://localhost:8088")
+    logger.info('Try: azd ai agent invoke --local "What benefits are there, and when do I need to enroll by?"')
+    server = from_agent_framework(agent, session_repository=InMemoryAgentSessionRepository())
+    await server.run_async()
 
 async def main():
     """Main function to run the agent as a web server."""
+    logger.info("Starting Internal HR Helper setup (FOUNDRY_IQ_CONTEXT_MODE=%s)", FOUNDRY_IQ_CONTEXT_MODE)
+    function_tools = [get_enrollment_deadline_info, get_current_date]
+    foundry_tools_context_provider = FoundryToolsContextProvider(
+        tools=[{"type": "web_search_preview"}, {"type": "code_interpreter"}],
+    )
+
     async with DefaultAzureCredential() as credential:
-        agent = Agent(
-            client=AzureAIAgentClient(
-                project_endpoint=PROJECT_ENDPOINT,
-                model_deployment_name=MODEL_DEPLOYMENT_NAME,
+
+        if FOUNDRY_IQ_CONTEXT_MODE == "kb_mcp_endpoint":
+            # The model decides when to call the KB MCP endpoint as a tool
+            mcp_url = (
+                f"{SEARCH_SERVICE_ENDPOINT}/knowledgebases/{KNOWLEDGE_BASE_NAME}"
+                f"/mcp?api-version=2025-11-01-Preview"
+            )
+            logger.info("Using KB MCP tool at %s", mcp_url)
+
+            async def _add_auth(request: httpx.Request) -> None:
+                token = await credential.get_token("https://search.azure.com/.default")
+                request.headers["Authorization"] = f"Bearer {token.token}"
+
+            async with httpx.AsyncClient(
+                event_hooks={"request": [_add_auth]},
+                timeout=httpx.Timeout(30.0, read=300.0),
+            ) as http_client:
+                async with MCPStreamableHTTPTool(
+                    name="zava-company-knowledge-base",
+                    description="Zava company documents - benefits, insurance, policies, job roles.",
+                    url=mcp_url,
+                    http_client=http_client,
+                    allowed_tools=["knowledge_base_retrieve"],
+                    load_prompts=False,
+                ) as kb_mcp_tool:
+                    await start_server(
+                        credential,
+                        [kb_mcp_tool] + function_tools,
+                        [foundry_tools_context_provider],
+                    )
+        else:
+            # KB results are injected into context automatically before each turn
+            logger.info("Using AI Search context provider for knowledge base '%s'", KNOWLEDGE_BASE_NAME)
+            search_context_provider = AzureAISearchContextProvider(
+                endpoint=SEARCH_SERVICE_ENDPOINT,
                 credential=credential,
-            ),
-            name="SeattleHotelAgent",
-            instructions="""You are a helpful travel assistant specializing in finding hotels in Seattle, Washington.
-
-When a user asks about hotels in Seattle:
-1. Ask for their check-in and check-out dates if not provided
-2. Ask about their budget preferences if not mentioned
-3. Use the get_available_hotels tool to find available options
-4. Present the results in a friendly, informative way
-5. Offer to help with additional questions about the hotels or Seattle
-
-Be conversational and helpful. If users ask about things outside of Seattle hotels, 
-politely let them know you specialize in Seattle hotel recommendations.""",
-            tools=[get_available_hotels],
-        )
-
-        print("Seattle Hotel Agent Server running on http://localhost:8088")
-        server = from_agent_framework(agent)
-        await server.run_async()
-
+                knowledge_base_name=KNOWLEDGE_BASE_NAME,
+                mode="agentic",
+            )
+            await start_server(
+                credential,
+                function_tools,
+                [search_context_provider, foundry_tools_context_provider],
+            )
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
+    logger.setLevel(logging.INFO)
+    # Silence noisy HTTP/telemetry loggers
+    for name in ("azure.core.pipeline", "azure.monitor.opentelemetry", "urllib3", "azure.identity"):
+        logging.getLogger(name).setLevel(logging.WARNING)
+
+    enable_instrumentation(enable_sensitive_data=True)
+
     asyncio.run(main())

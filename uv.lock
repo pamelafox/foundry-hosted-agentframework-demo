@@ -25,6 +25,19 @@ wheels = [
 ]
 
 [[package]]
+name = "agent-framework-azure-ai-search"
+version = "1.0.0b260304"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "agent-framework-core" },
+    { name = "azure-search-documents" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/6e/66/5304f41b5201869aac1d848f3782bc1ac37a6a54bb1fef55671516959032/agent_framework_azure_ai_search-1.0.0b260304.tar.gz", hash = "sha256:920f82f8ddbb4c999c33d367a5d694a93efa178434aa922b5f487932600d60e4", size = 10585 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/94/77/7c92320e835ea2289adf32abecfcd9ddab7e76beca4f00f2038d41f79c0e/agent_framework_azure_ai_search-1.0.0b260304-py3-none-any.whl", hash = "sha256:879c7551605021ce6630ac46e34022fde64063d79ff1bbf71bb8830220949ef5", size = 10555 },
+]
+
+[[package]]
 name = "agent-framework-core"
 version = "1.0.0rc3"
 source = { registry = "https://pypi.org/simple" }
@@ -277,6 +290,15 @@ wheels = [
 ]
 
 [[package]]
+name = "azure-common"
+version = "1.1.28"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/3e/71/f6f71a276e2e69264a97ad39ef850dca0a04fce67b12570730cb38d0ccac/azure-common-1.1.28.zip", hash = "sha256:4ac0cd3214e36b6a1b6a442686722a5d8cc449603aa833f3f0f40bda836704a3", size = 20914 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/62/55/7f118b9c1b23ec15ca05d15a578d8207aa1706bc6f7c87218efffbbf875d/azure_common-1.1.28-py2.py3-none-any.whl", hash = "sha256:5c12d3dcf4ec20599ca6b0d3e09e86e146353d443e7fcc050c9a19c1f9df20ad", size = 14462 },
+]
+
+[[package]]
 name = "azure-core"
 version = "1.39.0"
 source = { registry = "https://pypi.org/simple" }
@@ -356,6 +378,21 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/bc/a4/a6cd2d389bc1009300bcd57c9e2ace4b7e7ae1e5dc0bda415ee803629cf2/azure_monitor_opentelemetry_exporter-1.0.0b51.tar.gz", hash = "sha256:a6171c34326bcd6216938bb40d715c15f1f22984ac1986fc97231336d8ac4c3c", size = 319837 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ea/1a/6b0b7a6181b42709103a65a676c89fd5055cb1d1b281ebe10c49254a170f/azure_monitor_opentelemetry_exporter-1.0.0b51-py2.py3-none-any.whl", hash = "sha256:6572cac11f96e3b18ae1187cb35cf3b40d0004655dae8048896c41c765bea530", size = 242104 },
+]
+
+[[package]]
+name = "azure-search-documents"
+version = "11.7.0b2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "azure-common" },
+    { name = "azure-core" },
+    { name = "isodate" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f9/ba/bde0f03e0a742ba3bbcc929f91ed2f3b1420c2bb84c9a7f878f3b87ebfce/azure_search_documents-11.7.0b2.tar.gz", hash = "sha256:b6e039f8038ff2210d2057e704e867c6e29bb46bfcd400da4383e45e4b8bb189", size = 423956 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e5/26/ed4498374f9088818278ac225f2bea688b4ec979d81bf83a5355c8c366af/azure_search_documents-11.7.0b2-py3-none-any.whl", hash = "sha256:f82117b321344a84474269ed26df194c24cca619adc024d981b1b86aee3c6f05", size = 432037 },
 ]
 
 [[package]]
@@ -607,17 +644,23 @@ wheels = [
 [[package]]
 name = "foundry-hostedagentframework-demo"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
+    { name = "agent-framework-azure-ai-search" },
     { name = "azure-ai-agentserver-agentframework" },
+    { name = "azure-ai-projects" },
     { name = "azure-identity" },
+    { name = "azure-search-documents" },
     { name = "python-dotenv" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "agent-framework-azure-ai-search", specifier = ">=1.0.0b260304" },
     { name = "azure-ai-agentserver-agentframework", specifier = "==1.0.0b17" },
+    { name = "azure-ai-projects", specifier = ">=2.0.0b4" },
     { name = "azure-identity" },
+    { name = "azure-search-documents", specifier = ">=11.6.0" },
     { name = "python-dotenv" },
 ]
 
