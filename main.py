@@ -8,18 +8,21 @@ azd ai agent run
 """
 
 import asyncio
+import json
 import logging
 import os
 from datetime import date
+from typing import Annotated
 
 import httpx
-from agent_framework import Agent, MCPStreamableHTTPTool
-from agent_framework.azure import AzureAIAgentClient, AzureAISearchContextProvider
+from agent_framework import Agent
+from agent_framework.azure import AzureAIAgentClient
 from agent_framework.observability import enable_instrumentation
 from azure.ai.agentserver.agentframework import FoundryToolsContextProvider, from_agent_framework
 from azure.ai.agentserver.agentframework.persistence import InMemoryAgentSessionRepository
 from azure.identity.aio import DefaultAzureCredential
 from dotenv import load_dotenv
+from pydantic import Field
 
 load_dotenv(dotenv_path=".env", override=True)
 
@@ -32,103 +35,140 @@ PROJECT_ENDPOINT = os.environ["AZURE_AI_PROJECT_ENDPOINT"]
 MODEL_DEPLOYMENT_NAME = os.environ["AZURE_AI_MODEL_DEPLOYMENT_NAME"]
 SEARCH_SERVICE_ENDPOINT = os.environ["AZURE_AI_SEARCH_SERVICE_ENDPOINT"]
 KNOWLEDGE_BASE_NAME = os.environ["AZURE_AI_SEARCH_KNOWLEDGE_BASE_NAME"]
-# "context_provider" = AzureAISearchContextProvider injects KB results into context
-# "kb_mcp_endpoint" = MCPStreamableHTTPTool lets the model call the KB MCP endpoint as a tool
-FOUNDRY_IQ_CONTEXT_MODE = os.environ.get("FOUNDRY_IQ_CONTEXT_MODE", "kb_mcp_endpoint")
 
 
 def get_current_date() -> str:
-    """
-    Return the current date in ISO format.
-    """
+    """Return the current date in ISO format."""
     logger.info("Fetching current date")
     return date.today().isoformat()
 
 def get_enrollment_deadline_info() -> str:
-    """
-    Return enrollment timeline details for health insurance plans.
-    """
+    """Return enrollment timeline details for health insurance plans."""
     logger.info("Fetching enrollment deadline information")
     return {
         "benefits_enrollment_opens": "2026-11-11",
         "benefits_enrollment_closes": "2026-11-30"
     }
 
-async def start_server(credential, tools, context_providers):
-    """Create the agent and start the server."""
-    agent = Agent(
-        client=AzureAIAgentClient(
-            project_endpoint=PROJECT_ENDPOINT,
-            model_deployment_name=MODEL_DEPLOYMENT_NAME,
-            credential=credential,
-        ),
-        name="InternalHRHelper",
-        instructions="""You are an internal HR helper focused on employee benefits and company information.
-        Use the knowledge available to answer questions and ground all answers in provided context.
-        You can use web search to look up current information when the knowledge base does not have the answer.
-        You can use these tools if the user needs information on benefits deadlines: get_enrollment_deadline_info, get_current_date.
-        If you cannot answer a question, explain that you do not have available information to fully answer the question.""",
-        tools=tools,
-        context_providers=context_providers,
-    )
-    logger.info("Internal HR Helper Server running on http://localhost:8088")
-    logger.info('Try: azd ai agent invoke --local "What benefits are there, and when do I need to enroll by?"')
-    server = from_agent_framework(agent, session_repository=InMemoryAgentSessionRepository())
-    await server.run_async()
+
+class KnowledgeBaseMCPTool:
+    """Wraps the KB MCP endpoint as a callable tool, working around the MCP SDK
+    validation bug where the endpoint returns resource content with uri: null.
+    See: https://github.com/Azure/azure-search/issues/XXXX
+    """
+
+    def __init__(self, http_client: httpx.AsyncClient, mcp_url: str) -> None:
+        self._http_client = http_client
+        self._mcp_url = mcp_url
+        self._headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream",
+        }
+        self._initialized = False
+
+    async def _ensure_initialized(self) -> None:
+        """Perform MCP handshake if not already done."""
+        if self._initialized:
+            return
+        await self._http_client.post(
+            self._mcp_url,
+            json={"jsonrpc": "2.0", "id": 0, "method": "initialize", "params": {
+                "protocolVersion": "2025-11-25",
+                "capabilities": {"sampling": {}},
+                "clientInfo": {"name": "hr-agent", "version": "0.1.0"},
+            }},
+            headers=self._headers,
+        )
+        await self._http_client.post(
+            self._mcp_url,
+            json={"jsonrpc": "2.0", "method": "notifications/initialized"},
+            headers=self._headers,
+        )
+        self._initialized = True
+
+    async def retrieve(
+        self,
+        queries: Annotated[list[str], Field(
+            description="1 to 4 concise search queries (max ~12 words each). "
+            "Include facets and alternative formulations as separate array entries.",
+            min_length=1,
+            max_length=4,
+        )],
+    ) -> str:
+        """Search the Zava company knowledge base for HR policies, benefits, insurance, and job information.
+
+        Use this tool to find information from internal company documents before answering HR-related questions.
+        """
+        await self._ensure_initialized()
+        logger.info("KB MCP retrieve: %s", queries)
+        response = await self._http_client.post(
+            self._mcp_url,
+            json={"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {
+                "name": "knowledge_base_retrieve",
+                "arguments": {"queries": queries},
+            }},
+            headers=self._headers,
+        )
+        # Parse SSE response, extract text from resource content items
+        for line in response.text.split("\n"):
+            if not line.startswith("data:"):
+                continue
+            data = json.loads(line[5:].strip())
+            if "result" not in data or "content" not in data["result"]:
+                continue
+            snippets = []
+            for item in data["result"]["content"]:
+                if item.get("type") == "resource" and "resource" in item:
+                    snippets.append(item["resource"].get("text", ""))
+                elif item.get("type") == "text":
+                    snippets.append(item.get("text", ""))
+            return "\n\n---\n\n".join(snippets)
+        return "No results found."
+
 
 async def main():
     """Main function to run the agent as a web server."""
-    logger.info("Starting Internal HR Helper setup (FOUNDRY_IQ_CONTEXT_MODE=%s)", FOUNDRY_IQ_CONTEXT_MODE)
-    function_tools = [get_enrollment_deadline_info, get_current_date]
-    foundry_tools_context_provider = FoundryToolsContextProvider(
-        tools=[{"type": "web_search_preview"}, {"type": "code_interpreter"}],
+    mcp_url = (
+        f"{SEARCH_SERVICE_ENDPOINT}/knowledgebases/{KNOWLEDGE_BASE_NAME}"
+        f"/mcp?api-version=2025-11-01-Preview"
     )
+    logger.info("Using KB MCP tool at %s", mcp_url)
 
     async with DefaultAzureCredential() as credential:
 
-        if FOUNDRY_IQ_CONTEXT_MODE == "kb_mcp_endpoint":
-            # The model decides when to call the KB MCP endpoint as a tool
-            mcp_url = (
-                f"{SEARCH_SERVICE_ENDPOINT}/knowledgebases/{KNOWLEDGE_BASE_NAME}"
-                f"/mcp?api-version=2025-11-01-Preview"
-            )
-            logger.info("Using KB MCP tool at %s", mcp_url)
+        async def _add_auth(request: httpx.Request) -> None:
+            token = await credential.get_token("https://search.azure.com/.default")
+            request.headers["Authorization"] = f"Bearer {token.token}"
 
-            async def _add_auth(request: httpx.Request) -> None:
-                token = await credential.get_token("https://search.azure.com/.default")
-                request.headers["Authorization"] = f"Bearer {token.token}"
+        async with httpx.AsyncClient(
+            event_hooks={"request": [_add_auth]},
+            timeout=httpx.Timeout(30.0, read=300.0),
+        ) as http_client:
+            kb_tool = KnowledgeBaseMCPTool(http_client, mcp_url)
 
-            async with httpx.AsyncClient(
-                event_hooks={"request": [_add_auth]},
-                timeout=httpx.Timeout(30.0, read=300.0),
-            ) as http_client:
-                async with MCPStreamableHTTPTool(
-                    name="zava-company-knowledge-base",
-                    description="Zava company documents - benefits, insurance, policies, job roles.",
-                    url=mcp_url,
-                    http_client=http_client,
-                    allowed_tools=["knowledge_base_retrieve"],
-                    load_prompts=False,
-                ) as kb_mcp_tool:
-                    await start_server(
-                        credential,
-                        [kb_mcp_tool] + function_tools,
-                        [foundry_tools_context_provider],
-                    )
-        else:
-            # KB results are injected into context automatically before each turn
-            logger.info("Using AI Search context provider for knowledge base '%s'", KNOWLEDGE_BASE_NAME)
-            search_context_provider = AzureAISearchContextProvider(
-                endpoint=SEARCH_SERVICE_ENDPOINT,
-                credential=credential,
-                knowledge_base_name=KNOWLEDGE_BASE_NAME,
-                mode="agentic",
+            agent = Agent(
+                client=AzureAIAgentClient(
+                    project_endpoint=PROJECT_ENDPOINT,
+                    model_deployment_name=MODEL_DEPLOYMENT_NAME,
+                    credential=credential,
+                ),
+                name="InternalHRHelper",
+                instructions="""You are an internal HR helper focused on employee benefits and company information.
+                Use the knowledge base tool to answer questions and ground all answers in provided context.
+                You can use web search to look up current information when the knowledge base does not have the answer.
+                You can use these tools if the user needs information on benefits deadlines: get_enrollment_deadline_info, get_current_date.
+                If you cannot answer a question, explain that you do not have available information to fully answer the question.""",
+                tools=[kb_tool.retrieve, get_enrollment_deadline_info, get_current_date],
+                context_providers=[
+                    FoundryToolsContextProvider(
+                        tools=[{"type": "web_search_preview"}, {"type": "code_interpreter"}],
+                    ),
+                ],
             )
-            await start_server(
-                credential,
-                function_tools,
-                [search_context_provider, foundry_tools_context_provider],
-            )
+            logger.info("Internal HR Helper Server running on http://localhost:8088")
+            logger.info('Try: azd ai agent invoke --local "What PerksPlus benefits are there, and when do I need to enroll by?"')
+            server = from_agent_framework(agent, session_repository=InMemoryAgentSessionRepository())
+            await server.run_async()
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

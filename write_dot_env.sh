@@ -26,7 +26,6 @@ done
 
 # Add non-azd vars with defaults
 echo "AZURE_AI_SEARCH_KNOWLEDGE_BASE_NAME=zava-company-kb" >> "$ENV_FILE"
-echo "FOUNDRY_IQ_CONTEXT_MODE=kb_mcp_endpoint" >> "$ENV_FILE"
 
 echo "Wrote $ENV_FILE:"
 cat "$ENV_FILE"

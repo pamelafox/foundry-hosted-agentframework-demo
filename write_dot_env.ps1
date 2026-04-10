@@ -25,7 +25,6 @@ foreach ($var in $Vars) {
 
 # Add non-azd vars with defaults
 "AZURE_AI_SEARCH_KNOWLEDGE_BASE_NAME=zava-company-kb" | Add-Content $EnvFile
-"FOUNDRY_IQ_CONTEXT_MODE=kb_mcp_endpoint" | Add-Content $EnvFile
 
 Write-Host "Wrote ${EnvFile}:"
 Get-Content $EnvFile
