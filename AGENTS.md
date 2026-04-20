@@ -36,7 +36,7 @@ This repository follows Azure Developer CLI (`azd ai`) environment variable nami
 
 Always use these names in code, scripts, and docs:
 
-- `AZURE_AI_PROJECT_ENDPOINT`
+- `FOUNDRY_PROJECT_ENDPOINT`
 - `AZURE_AI_MODEL_DEPLOYMENT_NAME`
 - `AZURE_AI_SEARCH_SERVICE_ENDPOINT`
 - `AZURE_AI_SEARCH_CONNECTION_NAME`

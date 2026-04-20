@@ -30,7 +30,7 @@ SCHEDULE_ID = f"{AGENT_NAME}-daily-quality-eval"
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "eval_output")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-project_endpoint = os.environ["AZURE_AI_PROJECT_ENDPOINT"]
+project_endpoint = os.environ["FOUNDRY_PROJECT_ENDPOINT"]
 model_deployment = os.environ["AZURE_AI_MODEL_DEPLOYMENT_NAME"]
 
 credential = AzureCliCredential(process_timeout=60)

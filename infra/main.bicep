@@ -140,7 +140,7 @@ output AZURE_AI_ACCOUNT_NAME string = aiProject.outputs.aiServicesAccountName
 output AZURE_AI_PROJECT_NAME string = aiProject.outputs.projectName
 
 // Endpoints
-output AZURE_AI_PROJECT_ENDPOINT string = aiProject.outputs.AZURE_AI_PROJECT_ENDPOINT
+output FOUNDRY_PROJECT_ENDPOINT string = aiProject.outputs.FOUNDRY_PROJECT_ENDPOINT
 output AZURE_AI_MODEL_DEPLOYMENT_NAME string = defaultModelDeploymentName
 output AZURE_OPENAI_ENDPOINT string = aiProject.outputs.AZURE_OPENAI_ENDPOINT
 output APPLICATIONINSIGHTS_CONNECTION_STRING string = aiProject.outputs.APPLICATIONINSIGHTS_CONNECTION_STRING
@@ -170,3 +170,6 @@ output AZURE_AI_SEARCH_SERVICE_ENDPOINT string = !empty(aiProject.outputs.depend
 // Azure Storage
 output AZURE_STORAGE_CONNECTION_NAME string = aiProject.outputs.dependentResources.storage.connectionName
 output AZURE_STORAGE_ACCOUNT_NAME string = aiProject.outputs.dependentResources.storage.accountName
+
+// Tenant
+output AZURE_TENANT_ID string = tenant().tenantId

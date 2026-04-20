@@ -30,7 +30,7 @@ load_dotenv(override=True)
 AGENT_NAME = os.environ.get("AGENT_NAME", "internal-hr-benefits-agent")
 SCHEDULE_ID = f"{AGENT_NAME}-daily-red-team"
 
-project_endpoint = os.environ["AZURE_AI_PROJECT_ENDPOINT"]
+project_endpoint = os.environ["FOUNDRY_PROJECT_ENDPOINT"]
 model_deployment = os.environ["AZURE_AI_MODEL_DEPLOYMENT_NAME"]
 
 credential = AzureCliCredential(process_timeout=60)

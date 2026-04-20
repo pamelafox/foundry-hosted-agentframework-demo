@@ -139,7 +139,7 @@ dependencies
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `AZURE_AI_PROJECT_ENDPOINT` | Yes | Foundry project endpoint |
+| `FOUNDRY_PROJECT_ENDPOINT` | Yes | Foundry project endpoint |
 | `AZURE_AI_MODEL_DEPLOYMENT_NAME` | Yes | Model deployment name (e.g., `gpt-5.2`) |
 | `AZURE_AI_SEARCH_SERVICE_ENDPOINT` | Yes | Azure AI Search endpoint |
 | `AZURE_AI_SEARCH_KNOWLEDGE_BASE_NAME` | Yes | Knowledge base name (default: `zava-company-kb`) |

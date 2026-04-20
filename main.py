@@ -30,7 +30,7 @@ logger = logging.getLogger("hr-agent")
 
 
 # Configure these for your Foundry project via environment variables (see .env.sample)
-PROJECT_ENDPOINT = os.environ["AZURE_AI_PROJECT_ENDPOINT"]
+PROJECT_ENDPOINT = os.environ["FOUNDRY_PROJECT_ENDPOINT"]
 MODEL_DEPLOYMENT_NAME = os.environ["AZURE_AI_MODEL_DEPLOYMENT_NAME"]
 SEARCH_SERVICE_ENDPOINT = os.environ["AZURE_AI_SEARCH_SERVICE_ENDPOINT"]
 KNOWLEDGE_BASE_NAME = os.environ["AZURE_AI_SEARCH_KNOWLEDGE_BASE_NAME"]
@@ -169,7 +169,8 @@ def main():
         default_options={"store": False},
     )
 
-    server = ResponsesHostServer(agent, store=InMemoryResponseProvider())
+    #server = ResponsesHostServer(agent, store=InMemoryResponseProvider())
+    server = ResponsesHostServer(agent)
     logger.info("Internal HR Helper Server running on http://localhost:8088")
     logger.info('Try: azd ai agent invoke --local "What PerksPlus benefits are there, and when do I need to enroll by?"')
     server.run()
