@@ -29,7 +29,8 @@ az role assignment create `
     --assignee-principal-type ServicePrincipal `
     --role "8ebe5a00-799e-43f5-93ac-243d3dce84a7" `
     --scope $searchScope `
-    --only-show-errors 2>$null
+    --only-show-errors `
+    --output none 2>$null
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Role assignment may already exist (this is OK)."

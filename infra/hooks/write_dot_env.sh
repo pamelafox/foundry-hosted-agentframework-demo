@@ -28,5 +28,4 @@ done
 echo "AZURE_AI_SEARCH_KNOWLEDGE_BASE_NAME=zava-company-kb" >> "$ENV_FILE"
 echo "CUSTOM_FOUNDRY_AGENT_TOOLBOX_NAME=hr-agent-tools" >> "$ENV_FILE"
 
-echo "Wrote $ENV_FILE:"
-cat "$ENV_FILE"
+echo "Wrote $ENV_FILE"

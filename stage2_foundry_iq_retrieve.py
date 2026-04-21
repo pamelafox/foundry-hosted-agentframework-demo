@@ -34,12 +34,14 @@ from azure.search.documents.knowledgebases.models import (
 )
 from dotenv import load_dotenv
 from pydantic import Field
+from rich.console import Console
+from rich.logging import RichHandler
+from rich.markdown import Markdown
 
 load_dotenv(override=True)
 
-logging.basicConfig(level=logging.WARNING, format="%(message)s")
+console = Console()
 logger = logging.getLogger("stage2")
-logger.setLevel(logging.INFO)
 
 
 @tool
@@ -130,12 +132,15 @@ async def main():
     response = await agent.run(
         "What PerksPlus benefits are there, and when do I need to enroll by?"
     )
-    print("\n--- Agent answer ---")
-    print(response.text)
+    console.print("\n[bold]Agent answer:[/bold]")
+    console.print(Markdown(response.text))
 
     await kb_client.close()
     await credential.close()
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(message)s", handlers=[RichHandler(console=console, show_path=False)])
+    logging.getLogger("azure.identity").setLevel(logging.WARNING)
+    logging.getLogger("azure.core").setLevel(logging.WARNING)
     asyncio.run(main())

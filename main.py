@@ -50,7 +50,7 @@ def get_enrollment_deadline_info() -> str:
     }
 
 
-class _ToolboxAuth(httpx.Auth):
+class ToolboxAuth(httpx.Auth):
     """httpx Auth that injects a fresh bearer token for the Foundry Toolbox MCP endpoint."""
 
     def __init__(self, token_provider) -> None:
@@ -162,7 +162,7 @@ def main():
     logger.info("Using Foundry Toolbox MCP at %s", toolbox_endpoint)
     token_provider = get_bearer_token_provider(credential, "https://ai.azure.com/.default")
     toolbox_http_client = httpx.AsyncClient(
-        auth=_ToolboxAuth(token_provider),
+        auth=ToolboxAuth(token_provider),
         headers={"Foundry-Features": "Toolboxes=V1Preview"},
         timeout=120.0,
     )

@@ -1,5 +1,8 @@
 $ErrorActionPreference = "Stop"
 
+Write-Host "Writing .env file from azd environment..."
+& ./infra/hooks/write_dot_env.ps1
+
 Write-Host "Running postprovision hook for Foundry IQ (Azure AI Search)..."
 
 if (-not $env:AZURE_AI_SEARCH_SERVICE_NAME) {

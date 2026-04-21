@@ -28,6 +28,7 @@ az role assignment create \
     --role "8ebe5a00-799e-43f5-93ac-243d3dce84a7" \
     --scope "$SEARCH_SCOPE" \
     --only-show-errors \
+    --output none \
     2>/dev/null || echo "Role assignment may already exist (this is OK)."
 
 echo "Postdeploy hook complete."

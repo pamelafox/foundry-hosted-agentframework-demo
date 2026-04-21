@@ -21,10 +21,12 @@ from datetime import date
 
 from agent_framework import Agent, tool
 from agent_framework.openai import OpenAIChatClient
+from rich.console import Console
+from rich.logging import RichHandler
+from rich.markdown import Markdown
 
-logging.basicConfig(level=logging.WARNING, format="%(message)s")
+console = Console()
 logger = logging.getLogger("stage0")
-logger.setLevel(logging.INFO)
 
 
 @tool
@@ -59,9 +61,10 @@ async def main():
     response = await agent.run(
         "When does benefits enrollment open?"
     )
-    print("\n--- Agent answer ---")
-    print(response.text)
+    console.print("\n[bold]Agent answer:[/bold]")
+    console.print(Markdown(response.text))
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(message)s", handlers=[RichHandler(console=console, show_path=False)])
     asyncio.run(main())

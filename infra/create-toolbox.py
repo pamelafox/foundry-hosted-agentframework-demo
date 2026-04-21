@@ -8,7 +8,6 @@ Requires environment variables:
     CUSTOM_FOUNDRY_AGENT_TOOLBOX_NAME — Toolbox name (default: hr-agent-tools)
 """
 
-import logging
 import os
 
 import httpx
@@ -16,8 +15,6 @@ from azure.identity import DefaultAzureCredential
 from dotenv import load_dotenv
 
 load_dotenv(dotenv_path=".env", override=True)
-
-logger = logging.getLogger(__name__)
 
 _API_VERSION = "v1"
 _SCOPE = "https://ai.azure.com/.default"
@@ -44,7 +41,7 @@ def create_or_update_toolbox(endpoint: str, toolbox_name: str) -> None:
     ]
 
     # 1. Create a new version
-    logger.info("Creating toolbox '%s' at %s ...", toolbox_name, endpoint)
+    print(f"Creating toolbox '{toolbox_name}' at {endpoint} ...")
     resp = httpx.post(
         f"{base_url}/versions",
         params={"api-version": _API_VERSION},
@@ -56,10 +53,10 @@ def create_or_update_toolbox(endpoint: str, toolbox_name: str) -> None:
         timeout=60,
     )
     if not resp.is_success:
-        logger.error("Create version failed (%s): %s", resp.status_code, resp.text)
+        print(f"Create version failed ({resp.status_code}): {resp.text}")
         resp.raise_for_status()
     version = resp.json().get("version")
-    logger.info("Toolbox '%s' version %s created.", toolbox_name, version)
+    print(f"Toolbox '{toolbox_name}' version {version} created.")
 
     # 2. Promote this version to default
     resp = httpx.patch(
@@ -70,12 +67,10 @@ def create_or_update_toolbox(endpoint: str, toolbox_name: str) -> None:
         timeout=60,
     )
     resp.raise_for_status()
-    logger.info("Toolbox '%s' default version set to %s.", toolbox_name, version)
+    print(f"Toolbox '{toolbox_name}' default version set to {version}.")
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
-
     endpoint = os.environ["FOUNDRY_PROJECT_ENDPOINT"]
     toolbox_name = os.environ.get("CUSTOM_FOUNDRY_AGENT_TOOLBOX_NAME", "hr-agent-tools")
 

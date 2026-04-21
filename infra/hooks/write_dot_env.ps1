@@ -27,5 +27,4 @@ foreach ($var in $Vars) {
 "AZURE_AI_SEARCH_KNOWLEDGE_BASE_NAME=zava-company-kb" | Add-Content $EnvFile
 "CUSTOM_FOUNDRY_AGENT_TOOLBOX_NAME=hr-agent-tools" | Add-Content $EnvFile
 
-Write-Host "Wrote ${EnvFile}:"
-Get-Content $EnvFile
+Write-Host "Wrote ${EnvFile}"
