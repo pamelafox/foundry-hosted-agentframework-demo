@@ -2,7 +2,7 @@
 set -eu
 
 echo "Writing .env file from azd environment..."
-sh infra/hooks/write_dot_env.sh
+bash infra/hooks/write_dot_env.sh
 
 echo "Running postprovision hook for Foundry IQ (Azure AI Search)..."
 

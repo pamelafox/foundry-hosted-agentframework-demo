@@ -6,33 +6,20 @@ requires-python = ">=3.12"
 dependencies = [
     "azure-identity>=1.25.3",
     "python-dotenv>=1.2.2",
-    "agent-framework-core",
-    "agent-framework-openai",
-    "agent-framework-foundry",
-    "agent-framework-foundry-hosting",
-    "agent-framework-orchestrations",
+    "agent-framework-core>=1.0.1",
+    "agent-framework-openai>=1.0.1",
+    "agent-framework-foundry>=1.0.1",
+    "agent-framework-foundry-hosting>=1.0.0a260420",
+    "agent-framework-orchestrations>=1.0.0b260409",
     "azure-ai-projects>=2.1.0",
     "azure-search-documents>=11.6.0",
     "azure-monitor-opentelemetry>=1.8.7",
-    "agent-framework-azure-ai-search>=1.0.0b260304",
     "mcp>=1.27.0",
     "rich>=13.0.0",
 ]
 
 [tool.uv]
 prerelease = "allow"
-
-[[tool.uv.index]]
-name = "azure-sdk-dev"
-url = "https://pkgs.dev.azure.com/azure-sdk/public/_packaging/azure-sdk-for-python/pypi/simple/"
-explicit = true
-
-[tool.uv.sources]
-agent-framework-core = { git = "https://github.com/microsoft/agent-framework.git", branch = "feature/python-foundry-hosted-agent-vnext", subdirectory = "python/packages/core" }
-agent-framework-openai = { git = "https://github.com/microsoft/agent-framework.git", branch = "feature/python-foundry-hosted-agent-vnext", subdirectory = "python/packages/openai" }
-agent-framework-foundry = { git = "https://github.com/microsoft/agent-framework.git", branch = "feature/python-foundry-hosted-agent-vnext", subdirectory = "python/packages/foundry" }
-agent-framework-foundry-hosting = { git = "https://github.com/microsoft/agent-framework.git", branch = "feature/python-foundry-hosted-agent-vnext", subdirectory = "python/packages/foundry_hosting" }
-agent-framework-orchestrations = { git = "https://github.com/microsoft/agent-framework.git", branch = "feature/python-foundry-hosted-agent-vnext", subdirectory = "python/packages/orchestrations" }
 
 [tool.ruff]
 line-length = 120

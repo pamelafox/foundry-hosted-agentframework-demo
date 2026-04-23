@@ -10,66 +10,73 @@ resolution-markers = [
 prerelease-mode = "allow"
 
 [[package]]
-name = "agent-framework-azure-ai-search"
-version = "1.0.0b260409"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "agent-framework-core" },
-    { name = "azure-search-documents" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/62/fa/0b11d9ec115a21e6081cc748c19995756b71ac6956b2df18cdcac56ea7de/agent_framework_azure_ai_search-1.0.0b260409.tar.gz", hash = "sha256:fba0e635b1a35930ebd1aeaa07496e96c4e3593f192391e81bf8c2e078d48474", size = 11409 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/6b/7e/3476ba71284d7690ac99f991d2b307a7fd6133cd1509ab57cfa847002fd5/agent_framework_azure_ai_search-1.0.0b260409-py3-none-any.whl", hash = "sha256:78ad86ffbdd8557d3d94281cec67c7d4063dd8ef89ebda88d87d87eda56a669a", size = 11379 },
-]
-
-[[package]]
 name = "agent-framework-core"
-version = "1.0.1"
-source = { git = "https://github.com/microsoft/agent-framework.git?subdirectory=python%2Fpackages%2Fcore&branch=feature%2Fpython-foundry-hosted-agent-vnext#8b0ef62802ff7ffcd00fcf6d3e4dbcb8a399cb60" }
+version = "1.1.0"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "opentelemetry-api" },
     { name = "pydantic" },
     { name = "python-dotenv" },
     { name = "typing-extensions" },
 ]
+sdist = { url = "https://files.pythonhosted.org/packages/f7/97/7f429dec279cd156c4a08ab18f07263ef57134ece340e598a2c4b0d2e149/agent_framework_core-1.1.0.tar.gz", hash = "sha256:e399a9aad7fa6757b3b10a11c8b16a7229f908823720bc12996dc11e8e4d9d78", size = 290690 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1a/98/0628a25bfda7d270dc01b6f3a4a65f9b7d14f017978a237fd8ff858a2fca/agent_framework_core-1.1.0-py3-none-any.whl", hash = "sha256:0778ae7735403ac28216cd8ae26486e3d71f42641b9c4026dcb6f4a9885632e8", size = 329185 },
+]
 
 [[package]]
 name = "agent-framework-foundry"
 version = "1.0.1"
-source = { git = "https://github.com/microsoft/agent-framework.git?subdirectory=python%2Fpackages%2Ffoundry&branch=feature%2Fpython-foundry-hosted-agent-vnext#8b0ef62802ff7ffcd00fcf6d3e4dbcb8a399cb60" }
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "agent-framework-core" },
     { name = "agent-framework-openai" },
     { name = "azure-ai-inference" },
     { name = "azure-ai-projects" },
 ]
+sdist = { url = "https://files.pythonhosted.org/packages/52/66/bd7b45bbfc6cebb261b291bae7e7030e9a81acf449d4e16257acc7b349d5/agent_framework_foundry-1.0.1.tar.gz", hash = "sha256:7a1101fcab51c71a544324317a933c8fae397b8ddce9136d56e6ec6ff5a774a6", size = 26449 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d5/3f/e99c0acb7c2ed64bc948ae7676920c1576865ee8b1e46cf378b27b0de20b/agent_framework_foundry-1.0.1-py3-none-any.whl", hash = "sha256:494bab12300d364ade0de738f12d7509de9536da355182067e2c00758ea17cf4", size = 30705 },
+]
 
 [[package]]
 name = "agent-framework-foundry-hosting"
-version = "1.0.0a260420"
-source = { git = "https://github.com/microsoft/agent-framework.git?subdirectory=python%2Fpackages%2Ffoundry_hosting&branch=feature%2Fpython-foundry-hosted-agent-vnext#8b0ef62802ff7ffcd00fcf6d3e4dbcb8a399cb60" }
+version = "1.0.0a260421"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "agent-framework-core" },
     { name = "azure-ai-agentserver-core" },
     { name = "azure-ai-agentserver-invocations" },
     { name = "azure-ai-agentserver-responses" },
 ]
+sdist = { url = "https://files.pythonhosted.org/packages/f1/ed/ed46567395a99c9ecc74b05997bde944cf6e780d2009d130014ae7d3fa5d/agent_framework_foundry_hosting-1.0.0a260421.tar.gz", hash = "sha256:ef5ce876332fa679e5fc88bd97fa514db1503508afef40233ef14c5284c8fa85", size = 10876 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/46/36/d1e544b7b97e50b8779a7f63fdce950cec23b61b27f667de26b2382cf0b7/agent_framework_foundry_hosting-1.0.0a260421-py3-none-any.whl", hash = "sha256:b7a79dd5cf93f4475e005699a40b163f6cfc3ba64ffee386f587d72d53c31fac", size = 11697 },
+]
 
 [[package]]
 name = "agent-framework-openai"
 version = "1.0.1"
-source = { git = "https://github.com/microsoft/agent-framework.git?subdirectory=python%2Fpackages%2Fopenai&branch=feature%2Fpython-foundry-hosted-agent-vnext#8b0ef62802ff7ffcd00fcf6d3e4dbcb8a399cb60" }
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "agent-framework-core" },
     { name = "openai" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/7c/8b/8cae313b43f994815dc5be7195109bb05cd04ff40bcee2ec931d0b26d615/agent_framework_openai-1.0.1.tar.gz", hash = "sha256:d42913909ea4013d53cd3b95e17729c23e1349d64f45e5bc84b54292fc66ea82", size = 44469 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/0b/c0/1281fdb5afa65b1e660673d7426a4aeb0548701ba6606041d76283d6a8e3/agent_framework_openai-1.0.1-py3-none-any.whl", hash = "sha256:c99c9d49c3de3cbe6a6dfa8fa5e157f0d6dc47baf7a78c66e6591c48c0c3cb37", size = 49338 },
 ]
 
 [[package]]
 name = "agent-framework-orchestrations"
 version = "1.0.0b260409"
-source = { git = "https://github.com/microsoft/agent-framework.git?subdirectory=python%2Fpackages%2Forchestrations&branch=feature%2Fpython-foundry-hosted-agent-vnext#8b0ef62802ff7ffcd00fcf6d3e4dbcb8a399cb60" }
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "agent-framework-core" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d7/e7/62b673ef3a16b157edf565b25bd4aa5cad2f7a2ae46ff0a21b46a572f8d4/agent_framework_orchestrations-1.0.0b260409.tar.gz", hash = "sha256:5146410546233eafefb4deaf404935f6d3d772a085e341325b7b644b5223927a", size = 54730 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/14/4e/71832dd59764c79198f06b732dcf185d1296e970ef3ce55df9e8652b6e18/agent_framework_orchestrations-1.0.0b260409-py3-none-any.whl", hash = "sha256:361d65b6bfbb571b49428e0627637dc92fd3f56f3b5e1f1bbe8d32378c5aa24b", size = 60863 },
 ]
 
 [[package]]
@@ -643,7 +650,6 @@ name = "foundry-hostedagentframework-demo"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "agent-framework-azure-ai-search" },
     { name = "agent-framework-core" },
     { name = "agent-framework-foundry" },
     { name = "agent-framework-foundry-hosting" },
@@ -660,12 +666,11 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "agent-framework-azure-ai-search", specifier = ">=1.0.0b260304" },
-    { name = "agent-framework-core", git = "https://github.com/microsoft/agent-framework.git?subdirectory=python%2Fpackages%2Fcore&branch=feature%2Fpython-foundry-hosted-agent-vnext" },
-    { name = "agent-framework-foundry", git = "https://github.com/microsoft/agent-framework.git?subdirectory=python%2Fpackages%2Ffoundry&branch=feature%2Fpython-foundry-hosted-agent-vnext" },
-    { name = "agent-framework-foundry-hosting", git = "https://github.com/microsoft/agent-framework.git?subdirectory=python%2Fpackages%2Ffoundry_hosting&branch=feature%2Fpython-foundry-hosted-agent-vnext" },
-    { name = "agent-framework-openai", git = "https://github.com/microsoft/agent-framework.git?subdirectory=python%2Fpackages%2Fopenai&branch=feature%2Fpython-foundry-hosted-agent-vnext" },
-    { name = "agent-framework-orchestrations", git = "https://github.com/microsoft/agent-framework.git?subdirectory=python%2Fpackages%2Forchestrations&branch=feature%2Fpython-foundry-hosted-agent-vnext" },
+    { name = "agent-framework-core", specifier = ">=1.0.1" },
+    { name = "agent-framework-foundry", specifier = ">=1.0.1" },
+    { name = "agent-framework-foundry-hosting", specifier = ">=1.0.0a260420" },
+    { name = "agent-framework-openai", specifier = ">=1.0.1" },
+    { name = "agent-framework-orchestrations", specifier = ">=1.0.0b260409" },
     { name = "azure-ai-projects", specifier = ">=2.1.0" },
     { name = "azure-identity", specifier = ">=1.25.3" },
     { name = "azure-monitor-opentelemetry", specifier = ">=1.8.7" },
